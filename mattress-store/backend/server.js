@@ -10,19 +10,16 @@ dotenv.config();
 
 const app = express();
 
-// --- START SECURE CORS CONFIGURATION V2 ---
-// The most reliable way to set CORS for credentialed requests
+// --- START SECURE CORS CONFIGURATION V2 (Already Correct) ---
 const allowedOrigins = [
   'https://mattress-store-1-frontend.onrender.com', // Your LIVE Frontend URL
   'https://mattress-store-ig3e.onrender.com',      // Your LIVE Backend URL
   'http://localhost:5000',                        // Local Backend Dev
-  // Add your custom domain here too:
   'https://yourdomainname.com',
 ];
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     if (allowedOrigins.indexOf(origin) === -1) {
       const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
@@ -30,11 +27,15 @@ const corsOptions = {
     }
     return callback(null, true);
   },
-  credentials: true, // ESSENTIAL for cookies/JWTs
+  credentials: true,
 };
 
 app.use(cors(corsOptions));
 // --- END SECURE CORS CONFIGURATION V2 ---
+
+// 🛑 CRITICAL FIX: APPLY STANDARD JSON PARSER GLOBALLY HERE
+// This ensures that login, product creation, etc., receive JSON correctly.
+app.use(express.json());
 
 
 // Custom middleware to handle raw body ONLY for the webhook route
@@ -52,15 +53,15 @@ const razorpayWebhookMiddleware = (req, res, next) => {
             next();
         });
     } else {
-        // For all other routes, use standard express.json()
-        express.json()(req, res, next);
-        // Note: express.urlencoded() is generally included here too if you handle form data
+        // For all other routes, simply proceed (express.json() is already applied globally)
+        // 🛑 REMOVED: express.json()(req, res, next);
+        next();
     }
 };
 
 // Apply the custom webhook middleware globally
+// Note: This must come *after* the global app.use(express.json())
 app.use(razorpayWebhookMiddleware);
-
 
 
 // Connect to MongoDB
