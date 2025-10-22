@@ -9,8 +9,19 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const app = express();
-// CRITICAL FIX: Using simple CORS is now sufficient because the Vite proxy handles the cross-origin domain issue.
-app.use(cors({ credentials: true })); 
+
+// --- FINAL CRITICAL DEPLOYMENT FIXES ---
+// 1. MUST trust the Render proxy for secure cookies/headers (HTTPS)
+app.set('trust proxy', 1); 
+
+const FRONTEND_URL = 'https://mattress-store-1-frontend.onrender.com';
+
+// 2. MUST use explicit CORS settings to allow credentials across origins
+app.use(cors({ 
+    origin: FRONTEND_URL, 
+    credentials: true 
+})); 
+// ---------------------------------------
 
 
 // Custom middleware to handle raw body ONLY for the webhook route
