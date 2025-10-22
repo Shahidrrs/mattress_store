@@ -10,16 +10,13 @@ dotenv.config();
 
 const app = express();
 
-// --- START SECURE CORS CONFIGURATION ---
-const allowedOrigins = [
-  'https://mattress-store-1-frontend.onrender.com', // Your LIVE Frontend URL
-  'https://mattress-store-ig3e.onrender.com',      // Your LIVE Backend URL
-  'http://localhost:5173',                         // Default Vite Dev Server
-  'http://localhost:5000',                         // Local Backend Dev
-];
-
+// --- START SECURE CORS CONFIGURATION (MINIMAL CHANGE) ---
 app.use(cors({
-  origin: allowedOrigins,
+  origin: [
+    'https://mattress-store-1-frontend.onrender.com', // Your LIVE Frontend URL
+    'http://localhost:5173',                         // Default Vite Dev Server
+    'http://localhost:5000',                         // Local Backend Dev
+  ],
   credentials: true, // ESSENTIAL for authentication
 }));
 // --- END SECURE CORS CONFIGURATION ---
