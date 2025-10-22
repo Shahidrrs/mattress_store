@@ -2,7 +2,7 @@
 require('dotenv').config();
 const express = require("express");
 const mongoose = require("mongoose");
-const cors = require("cors"); // KEEP this import
+const cors = require("cors");
 const dotenv = require("dotenv");
 
 // Load env
@@ -10,29 +10,31 @@ dotenv.config();
 
 const app = express();
 
-// --- START SECURE CORS CONFIGURATION ---
+// --- START SECURE CORS CONFIGURATION V2 ---
+// The most reliable way to set CORS for credentialed requests
 const allowedOrigins = [
-  // 1. The LIVE Frontend URL (The one the user visits):
-  'https://mattress-store-1-frontend.onrender.com', 
-  
-  // 2. The Backend URL (Often needed for internal checks or if you test the API directly):
-  'https://mattress-store-ig3e.onrender.com',
-  
-  // 3. Local Development (Crucial for when you code locally):
-  'http://localhost:5000', // Assuming your frontend dev server runs on 5000 if not, change this
-  
-  // 4. Custom Domain Placeholder (Add your actual domain here when ready):
+  'https://mattress-store-1-frontend.onrender.com', // Your LIVE Frontend URL
+  'https://mattress-store-ig3e.onrender.com',      // Your LIVE Backend URL
+  'http://localhost:5000',                        // Local Backend Dev
+  // Add your custom domain here too:
   'https://yourdomainname.com',
 ];
 
 const corsOptions = {
-  origin: allowedOrigins,
-  credentials: true, // IMPORTANT for sending cookies/JWTs
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true, // ESSENTIAL for cookies/JWTs
 };
 
-// Apply the secure CORS options to all routes
-app.use(cors(corsOptions)); 
-// --- END SECURE CORS CONFIGURATION ---
+app.use(cors(corsOptions));
+// --- END SECURE CORS CONFIGURATION V2 ---
 
 
 // Custom middleware to handle raw body ONLY for the webhook route
@@ -52,11 +54,13 @@ const razorpayWebhookMiddleware = (req, res, next) => {
     } else {
         // For all other routes, use standard express.json()
         express.json()(req, res, next);
+        // Note: express.urlencoded() is generally included here too if you handle form data
     }
 };
 
 // Apply the custom webhook middleware globally
 app.use(razorpayWebhookMiddleware);
+
 
 
 // Connect to MongoDB
