@@ -10,16 +10,19 @@ dotenv.config();
 
 const app = express();
 
-// --- START SECURE CORS CONFIGURATION (MINIMAL CHANGE) ---
+// --- START MINIMAL CORS CONFIGURATION ---
+// We replace app.use(cors()) with the minimum configuration needed for deployment.
+const allowedOrigins = [
+  'https://mattress-store-1-frontend.onrender.com', // Your LIVE Frontend URL
+  'http://localhost:5173',                         // Default Vite Dev Server
+  'http://localhost:5000',                         // Local Backend Dev
+];
+
 app.use(cors({
-  origin: [
-    'https://mattress-store-1-frontend.onrender.com', // Your LIVE Frontend URL
-    'http://localhost:5173',                         // Default Vite Dev Server
-    'http://localhost:5000',                         // Local Backend Dev
-  ],
-  credentials: true, // ESSENTIAL for authentication
+  origin: allowedOrigins,
+  credentials: true, // Required for secure communication (cookies/auth)
 }));
-// --- END SECURE CORS CONFIGURATION ---
+// --- END MINIMAL CORS CONFIGURATION ---
 
 
 // Custom middleware to handle raw body ONLY for the webhook route
