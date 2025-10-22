@@ -2,14 +2,38 @@
 require('dotenv').config();
 const express = require("express");
 const mongoose = require("mongoose");
-const cors = require("cors");
+const cors = require("cors"); // KEEP this import
 const dotenv = require("dotenv");
 
 // Load env
 dotenv.config();
 
 const app = express();
-app.use(cors());
+
+// --- START SECURE CORS CONFIGURATION ---
+const allowedOrigins = [
+  // 1. The LIVE Frontend URL (The one the user visits):
+  'https://mattress-store-1-frontend.onrender.com', 
+  
+  // 2. The Backend URL (Often needed for internal checks or if you test the API directly):
+  'https://mattress-store-ig3e.onrender.com',
+  
+  // 3. Local Development (Crucial for when you code locally):
+  'http://localhost:5000', // Assuming your frontend dev server runs on 5000 if not, change this
+  
+  // 4. Custom Domain Placeholder (Add your actual domain here when ready):
+  'https://yourdomainname.com',
+];
+
+const corsOptions = {
+  origin: allowedOrigins,
+  credentials: true, // IMPORTANT for sending cookies/JWTs
+};
+
+// Apply the secure CORS options to all routes
+app.use(cors(corsOptions)); 
+// --- END SECURE CORS CONFIGURATION ---
+
 
 // Custom middleware to handle raw body ONLY for the webhook route
 const razorpayWebhookMiddleware = (req, res, next) => {
