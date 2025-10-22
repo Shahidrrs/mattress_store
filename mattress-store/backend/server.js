@@ -4,32 +4,13 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
-const cookieParser = require('cookie-parser'); // <-- NEW IMPORT
 
 // Load env
 dotenv.config();
 
 const app = express();
-
-// --- CRITICAL SECURITY & COOKIE CONFIGURATION ---
-// 1. Required for secure cookies/sessions behind a proxy (like Render)
-app.set('trust proxy', 1); 
-
-// 2. Cookie parser is necessary if you use JWTs in cookies or session management
-app.use(cookieParser());
-
-// 3. Minimal CORS configuration allowing your live frontend and credentials
-const allowedOrigins = [
-  'https://mattress-store-1-frontend.onrender.com', // Your LIVE Frontend URL
-  'http://localhost:5173',                         // Default Vite Dev Server
-  'http://localhost:5000',                         // Local Backend Dev
-];
-
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true, // ESSENTIAL for authentication
-}));
-// --- END SECURITY CONFIGURATION ---
+// CRITICAL FIX: Using simple CORS is now sufficient because the Vite proxy handles the cross-origin domain issue.
+app.use(cors({ credentials: true })); 
 
 
 // Custom middleware to handle raw body ONLY for the webhook route

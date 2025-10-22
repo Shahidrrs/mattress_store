@@ -13,7 +13,9 @@ const CATEGORIES = [
 ];
 
 // Fallback for environment variables (ensures compilation)
-const apiUrl = 'http://localhost:5000';
+// FIX: We set this to an empty string. When deployed, the Vite Proxy will handle the domain, 
+// ensuring the API call goes to the live backend URL.
+const apiUrl = ''; 
 // In a real app, you'd securely manage this token, but we hardcode a fallback for local testing.
 const token = 'change_me'; 
 
@@ -44,7 +46,8 @@ export default function AdminPanel(){
       
       console.log('Attempting to add product with payload:', payload);
 
-      // Use hardcoded fallback URL and token
+      // FIX: The call uses the relative path (apiUrl + '/api/products') 
+      // which results in '/api/products' and is intercepted by the Vite Proxy.
       await axios.post(apiUrl + '/api/products', payload, { headers: { 'x-admin-token': token }})
       
       console.log('Product added successfully!');
@@ -52,8 +55,8 @@ export default function AdminPanel(){
       setForm({ title: '', slug: '', description: '', price: 0, sizes: 'Single,Double', images: '', category: CATEGORIES[0] }); // Clear form
 
     } catch (err) { 
-        console.error('Failed to add product:', err.response?.data || err.message); 
-        setMessage('❌ Failed to add product. Check the console for details.'); 
+      console.error('Failed to add product:', err.response?.data || err.message); 
+      setMessage('❌ Failed to add product. Check the console for details.'); 
     }
   }
 
