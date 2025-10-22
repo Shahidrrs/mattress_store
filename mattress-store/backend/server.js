@@ -10,39 +10,43 @@ dotenv.config();
 
 const app = express();
 
-// --- START ROBUST CORS CONFIGURATION (MUST BE FIRST) ---
+// --- START SECURE CORS CONFIGURATION ---
 const allowedOrigins = [
-  'https://mattress-store-1-frontend.onrender.com',
-  'https://mattress-store-ig3e.onrender.com', // Your Backend URL
-  'http://localhost:5000',
+  'https://mattress-store-1-frontend.onrender.com', // Your LIVE Frontend URL
+  'https://mattress-store-ig3e.onrender.com',      // Your LIVE Backend URL
+  'http://localhost:5173',                         // Default Vite Dev Server
+  'http://localhost:5000',                         // Local Backend Dev
 ];
 
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
-    }
-    return callback(null, true);
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  origin: allowedOrigins,
+  credentials: true, // ESSENTIAL for authentication
 }));
-// --- END CORS CONFIGURATION ---
+// --- END SECURE CORS CONFIGURATION ---
 
 
-// 1. RAW BODY PARSER: APPLIED ONLY TO THE WEBHOOK ROUTE
-// This must run before the global JSON parser to ensure the raw body is attached
-// to req.body (or req.rawBody inside your handler) for signature verification.
-app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
+// Custom middleware to handle raw body ONLY for the webhook route
+const razorpayWebhookMiddleware = (req, res, next) => {
+    // Check if the request is for the webhook endpoint
+    if (req.originalUrl === '/api/payments/webhook') {
+        // Use express.raw() to get the raw body buffer
+        express.raw({ type: 'application/json' })(req, res, (err) => {
+            if (err) {
+                console.error("Raw body parsing error:", err);
+                return res.status(400).send('Bad Request');
+            }
+            // Store the raw body for signature verification in paymentRoutes.js
+            req.rawBody = req.body;
+            next();
+        });
+    } else {
+        // For all other routes, use standard express.json()
+        express.json()(req, res, next);
+    }
+};
 
-// 2. STANDARD JSON BODY PARSER: APPLIED TO ALL OTHER ROUTES
-// This will run for /api/auth/login, /api/products, etc.
-// Requests to /api/payments/webhook will skip this middleware.
-app.use(express.json());
-
+// Apply the custom webhook middleware globally
+app.use(razorpayWebhookMiddleware);
 
 
 // Connect to MongoDB
@@ -72,4 +76,4 @@ app.get("/", (req, res) => res.send("Server is running 🚀"));
 
 // Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log('✅ Server running on http://localhost:${PORT}'));
+app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
