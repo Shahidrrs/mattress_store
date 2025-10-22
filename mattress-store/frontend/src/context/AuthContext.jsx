@@ -1,0 +1,94 @@
+import React, { createContext, useState, useEffect, useContext } from 'react';
+import axios from 'axios'; 
+
+// --- Configuration ---
+// FIXED: Targeting your known backend port (5000)
+const API_ROOT_URL = 'http://localhost:5000'; 
+const API_BASE_URL = `${API_ROOT_URL}/api/auth`; 
+
+// --- Context Definition ---
+export const AuthContext = createContext({
+    isAuthenticated: false,
+    user: null,
+    login: () => {},
+    logout: () => {},
+    loading: true,
+    error: null,
+    forgotPassword: () => Promise.reject('Not implemented'), 
+    resetPassword: () => Promise.reject('Not implemented'), // <-- ADDED
+});
+
+export const useAuth = () => useContext(AuthContext);
+
+// --- Provider Component ---
+export const AuthProvider = ({ children }) => {
+    const [user, setUser] = useState(null);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    // Placeholder login/logout logic...
+    const login = (userData) => {
+        setUser(userData);
+        setIsAuthenticated(true);
+        localStorage.setItem('token', 'fake_auth_token_for_testing');
+    };
+
+    const logout = () => {
+        setUser(null);
+        setIsAuthenticated(false);
+        localStorage.removeItem('token');
+    };
+
+    // --- Forgot Password Logic (Existing) ---
+    const forgotPassword = async (email) => {
+        setError(null);
+        try {
+            const response = await axios.post(`${API_BASE_URL}/forgot-password`, { email });
+            return response.data.message || 'Password reset link sent to your email!';
+        } catch (err) {
+            const errorMessage = err.response?.data?.message || err.response?.data?.error || "Error processing request. Failed to connect to server.";
+            setError(errorMessage);
+            throw new Error(errorMessage); 
+        }
+    };
+
+    // --- NEW: Reset Password Logic ---
+    const resetPassword = async (token, newPassword) => {
+        setError(null);
+        try {
+            // API call to http://localhost:5000/api/auth/reset-password
+            const response = await axios.post(`${API_BASE_URL}/reset-password`, { 
+                token, 
+                newPassword 
+            });
+            return response.data.message || 'Password successfully reset.';
+        } catch (err) {
+            const errorMessage = err.response?.data?.message || err.response?.data?.error || "Failed to reset password. Link may be invalid or expired.";
+            setError(errorMessage);
+            throw new Error(errorMessage);
+        }
+    };
+    // ---------------------------------
+
+    useEffect(() => {
+        setLoading(false);
+    }, []);
+
+    const contextValue = { 
+        isAuthenticated, 
+        user, 
+        login, 
+        logout, 
+        loading,
+        error, 
+        forgotPassword,
+        resetPassword, // <-- ADDED TO CONTEXT VALUE
+    };
+
+    return (
+        <AuthContext.Provider value={contextValue}>
+            {children}
+        </AuthContext.Provider>
+    );
+};
