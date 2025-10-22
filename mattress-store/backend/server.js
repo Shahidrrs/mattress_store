@@ -25,6 +25,9 @@ app.use(cors({
 // --- END MINIMAL CORS CONFIGURATION ---
 
 
+
+
+
 // Custom middleware to handle raw body ONLY for the webhook route
 const razorpayWebhookMiddleware = (req, res, next) => {
     // Check if the request is for the webhook endpoint
