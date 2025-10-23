@@ -14,11 +14,17 @@ const app = express();
 // 1. MUST trust the Render proxy for secure cookies/headers (HTTPS)
 app.set('trust proxy', 1); 
 
-const FRONTEND_URL = 'https://mattress-store-1-frontend.onrender.com';
+// 2. Define ALL allowed origins for local development and deployment
+const allowedOrigins = [
+    'https://mattress-store-1-frontend.onrender.com', // Deployed Frontend URL
+    'http://localhost:5173', // Local Frontend URL (Vite default)
+    'http://localhost:5000', // Local Backend URL (Self-reference)
+    'https://mattress-store-ig3e.onrender.com' // Deployed Backend URL (Self-reference)
+];
 
-// 2. MUST use explicit CORS settings to allow credentials across origins
+// 3. Configure CORS to accept the array and allow credentials
 app.use(cors({ 
-    origin: FRONTEND_URL, 
+    origin: allowedOrigins, 
     credentials: true 
 })); 
 // ---------------------------------------

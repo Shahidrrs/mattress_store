@@ -1,9 +1,17 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import axios from 'axios'; 
 
-// --- Configuration ---
-// FIXED: Targeting your known backend port (5000)
-const API_ROOT_URL = 'http://localhost:5000'; 
+// --- Configuration: Dynamic URL FIX ---
+// 1. Check if the environment is a local development server
+const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+// 2. Set the base URL dynamically:
+// If local, use the local backend port 5000.
+// If deployed, use the full deployed backend URL.
+const API_ROOT_URL = isLocal 
+    ? 'http://localhost:5000' 
+    : 'https://mattress-store-ig3e.onrender.com'; // **CRITICAL: Use your specific deployed backend URL here**
+
 const API_BASE_URL = `${API_ROOT_URL}/api/auth`; 
 
 // --- Context Definition ---
@@ -15,7 +23,7 @@ export const AuthContext = createContext({
     loading: true,
     error: null,
     forgotPassword: () => Promise.reject('Not implemented'), 
-    resetPassword: () => Promise.reject('Not implemented'), // <-- ADDED
+    resetPassword: () => Promise.reject('Not implemented'),
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -57,7 +65,7 @@ export const AuthProvider = ({ children }) => {
     const resetPassword = async (token, newPassword) => {
         setError(null);
         try {
-            // API call to http://localhost:5000/api/auth/reset-password
+            // API call to http://localhost:5000/api/auth/reset-password (or deployed equivalent)
             const response = await axios.post(`${API_BASE_URL}/reset-password`, { 
                 token, 
                 newPassword 
@@ -83,7 +91,7 @@ export const AuthProvider = ({ children }) => {
         loading,
         error, 
         forgotPassword,
-        resetPassword, // <-- ADDED TO CONTEXT VALUE
+        resetPassword,
     };
 
     return (
