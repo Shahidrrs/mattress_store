@@ -7,9 +7,14 @@ const isLocal = window.location.hostname === 'localhost' || window.location.host
 // If running locally, use localhost:5000.
 // If deployed (not local), use the relative path '/api'. 
 // Render's Rewrite Rule must be configured to forward this to the backend service URL.
+
+     // Use empty string to create a path like /api/auth/login
+
+// CRITICAL FIX: Ensure the deployed frontend always uses the full HTTPS URL of the deployed backend.
+// Your Deployed Backend URL is: https://mattress-store-ig3e.onrender.com
 const API_ROOT_URL = isLocal 
     ? 'http://localhost:5000' 
-    : ''; // Use empty string to create a path like /api/auth/login
+    : 'https://mattress-store-ig3e.onrender.com'; // <--- FORCING EXTERNAL HTTPS URL
 
 const API_BASE_URL = `${API_ROOT_URL}/api/auth`; 
 
