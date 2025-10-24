@@ -1,16 +1,15 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import axios from 'axios'; 
 
-// --- Configuration: Dynamic URL FIX ---
-// 1. Check if the environment is a local development server
+// --- Configuration: Dynamic URL FIX (Using relative path for deployed) ---
 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
-// 2. Set the base URL dynamically:
-// If local, use the local backend port 5000.
-// If deployed, use the full deployed backend URL.
+// If running locally, use localhost:5000.
+// If deployed (not local), use the relative path '/api'. 
+// Render's Rewrite Rule must be configured to forward this to the backend service URL.
 const API_ROOT_URL = isLocal 
     ? 'http://localhost:5000' 
-    : 'https://mattress-store-ig3e.onrender.com'; // **CRITICAL: Use your specific deployed backend URL here**
+    : ''; // Use empty string to create a path like /api/auth/login
 
 const API_BASE_URL = `${API_ROOT_URL}/api/auth`; 
 
@@ -37,21 +36,24 @@ export const AuthProvider = ({ children }) => {
 
     // Placeholder login/logout logic...
     const login = (userData) => {
+        // ... (login logic)
         setUser(userData);
         setIsAuthenticated(true);
         localStorage.setItem('token', 'fake_auth_token_for_testing');
     };
 
     const logout = () => {
+        // ... (logout logic)
         setUser(null);
         setIsAuthenticated(false);
         localStorage.removeItem('token');
     };
 
-    // --- Forgot Password Logic (Existing) ---
+    // --- Forgot Password Logic ---
     const forgotPassword = async (email) => {
         setError(null);
         try {
+            // This will call /api/auth/forgot-password on deployed site
             const response = await axios.post(`${API_BASE_URL}/forgot-password`, { email });
             return response.data.message || 'Password reset link sent to your email!';
         } catch (err) {
@@ -61,11 +63,11 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    // --- NEW: Reset Password Logic ---
+    // --- Reset Password Logic ---
     const resetPassword = async (token, newPassword) => {
         setError(null);
         try {
-            // API call to http://localhost:5000/api/auth/reset-password (or deployed equivalent)
+            // This will call /api/auth/reset-password on deployed site
             const response = await axios.post(`${API_BASE_URL}/reset-password`, { 
                 token, 
                 newPassword 
