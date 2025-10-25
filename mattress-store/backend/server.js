@@ -3,12 +3,8 @@ require('dotenv').config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const session = require('express-session'); // REQUIRED: For state and cookie management
 
 const app = express();
-
-// Determine if we are running in a production environment (like Render)
-const isProduction = process.env.NODE_ENV === 'production';
 
 // --- CRITICAL DEPLOYMENT FIXES ---
 // 1. MUST trust the Render proxy for secure cookies/headers (HTTPS)
@@ -24,36 +20,11 @@ const allowedOrigins = [
 
 // 3. Configure CORS: MUST use specific origins when credentials are true
 app.use(cors({ 
-    // Custom logic to allow listed origins
-    origin: (origin, callback) => {
-        // Allow requests with no origin (like Postman/server-to-server) or from the allowed list
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            // Log the blocked origin for debugging
-            console.error('CORS blocked request from:', origin);
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    credentials: true // Required for sending session cookies
+    // Use the defined list of origins
+    origin: allowedOrigins, 
+    credentials: true // Required for any cross-site cookie/token handling
 })); 
 // ---------------------------------------
-
-// 4. Configure Express Session (Crucial for state management and cookie security on Render)
-app.use(session({
-    // Use a secret key from your environment variables
-    secret: process.env.SESSION_SECRET || 'a-strong-default-secret-for-mattress-store',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        // MUST set secure: true ONLY in production (Render) where HTTPS is used
-        secure: isProduction, 
-        // MUST set sameSite: 'none' when secure is true for cross-domain cookies
-        sameSite: isProduction ? 'none' : 'lax', 
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    }
-}));
-
 
 // Custom middleware to handle raw body ONLY for the webhook route
 const razorpayWebhookMiddleware = (req, res, next) => {
@@ -71,6 +42,7 @@ const razorpayWebhookMiddleware = (req, res, next) => {
         });
     } else {
         // For all other routes, use standard express.json()
+        // NOTE: We MUST call next() here to proceed if not the webhook
         express.json()(req, res, next);
     }
 };
@@ -79,7 +51,7 @@ const razorpayWebhookMiddleware = (req, res, next) => {
 app.use(razorpayWebhookMiddleware);
 
 
-// Connect to MongoDB
+// Connect to MongoDB (ensure mongoose is connected)
 mongoose.connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
