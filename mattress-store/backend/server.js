@@ -24,7 +24,7 @@ const allowedOrigins = [
 
 // 3. Configure CORS to accept the array and allow credentials
 app.use(cors({ 
-    origin: allowedOrigins, 
+    origin: '*', 
     credentials: true 
 })); 
 // ---------------------------------------
