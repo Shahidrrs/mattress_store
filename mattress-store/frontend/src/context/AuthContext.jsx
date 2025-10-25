@@ -1,5 +1,22 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import api from '../utils/api'; // NEW: Import the centralized Axios instance
+import axios from 'axios'; 
+
+// --- Configuration: Dynamic URL FIX (Using relative path for deployed) ---
+const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+// If running locally, use localhost:5000.
+// If deployed (not local), use the relative path '/api'. 
+// Render's Rewrite Rule must be configured to forward this to the backend service URL.
+
+     // Use empty string to create a path like /api/auth/login
+
+// CRITICAL FIX: Ensure the deployed frontend always uses the full HTTPS URL of the deployed backend.
+// Your Deployed Backend URL is: https://mattress-store-ig3e.onrender.com
+const API_ROOT_URL = isLocal 
+    ? 'http://localhost:5000' 
+    : 'https://mattress-store-ig3e.onrender.com'; // <--- FORCING EXTERNAL HTTPS URL
+
+const API_BASE_URL = `${API_ROOT_URL}/api/auth`; 
 
 // --- Context Definition ---
 export const AuthContext = createContext({
@@ -41,8 +58,8 @@ export const AuthProvider = ({ children }) => {
     const forgotPassword = async (email) => {
         setError(null);
         try {
-            // Use the centralized api instance for all calls
-            const response = await api.post(`/auth/forgot-password`, { email });
+            // This will call /api/auth/forgot-password on deployed site
+            const response = await axios.post(`${API_BASE_URL}/forgot-password`, { email });
             return response.data.message || 'Password reset link sent to your email!';
         } catch (err) {
             const errorMessage = err.response?.data?.message || err.response?.data?.error || "Error processing request. Failed to connect to server.";
@@ -55,8 +72,8 @@ export const AuthProvider = ({ children }) => {
     const resetPassword = async (token, newPassword) => {
         setError(null);
         try {
-            // Use the centralized api instance for all calls
-            const response = await api.post(`/auth/reset-password`, { 
+            // This will call /api/auth/reset-password on deployed site
+            const response = await axios.post(`${API_BASE_URL}/reset-password`, { 
                 token, 
                 newPassword 
             });
