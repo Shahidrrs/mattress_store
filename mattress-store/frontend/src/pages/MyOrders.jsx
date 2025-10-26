@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Truck, Package, XOctagon } from 'lucide-react';
 import { CartContext } from '../context/CartContext.jsx';
+import api from '../utils/api.js'; // <-- Required import for the new logic
 
 export default function MyOrders() {
     const { user } = useContext(CartContext);
@@ -25,25 +26,27 @@ export default function MyOrders() {
 
             setLoading(true);
             setError(null);
-            const token = localStorage.getItem("token");
+            
+            // NOTE: Assuming your api.js utility handles authentication headers (Bearer token) automatically.
+            // If it doesn't, you would need to retrieve the token and pass it in the config object here.
 
             try {
-                // Endpoint to fetch orders for the logged-in user
-                const res = await fetch("http://localhost:5000/api/orders/mine", {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                const data = await res.json();
+                // REFACTOR: Using api.get instead of hardcoded fetch
+                // The API utility should handle the base URL and return { data: [...] } on success.
+                const res = await api.get('/api/orders/mine'); 
                 
-                if (res.ok) {
-                    // Sort orders by creation date, newest first
-                    const sortedOrders = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-                    setOrders(sortedOrders);
-                } else {
-                    setError(data.message || "Failed to fetch orders.");
-                }
+                // Assuming api.get returns an object with a 'data' property
+                const data = res.data;
+                
+                // Sort orders by creation date, newest first
+                const sortedOrders = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                setOrders(sortedOrders);
+
             } catch (err) {
-                setError("Network error: Could not connect to the order service.");
-                console.error(err);
+                // Catch any error thrown by the api utility (e.g., failed status code or network error)
+                const errorMessage = err.response?.data?.message || err.message || "Failed to fetch orders.";
+                setError(errorMessage);
+                console.error("Order Fetch Error:", err);
             } finally {
                 setLoading(false);
             }

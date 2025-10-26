@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom';
-import axios from 'axios'
 import ProductGrid from '../components/ProductGrid.jsx'
+import api from '../utils/api.js'; // <-- API Utility Import
 // Placeholder icons since lucide-react might not be compiled
 // import { Filter, SortAsc, SortDesc, Zap } from 'lucide-react'
 
-const apiUrl = 'http://localhost:5000'
+// REMOVED: const apiUrl = 'http://localhost:5000'
 
 export default function ShopPage(){
   const [products, setProducts] = useState([])
@@ -30,8 +30,9 @@ export default function ShopPage(){
   // 1. Fetch all products on component mount
   useEffect(()=>{
     setLoading(true)
-    axios.get(apiUrl + '/api/products')
-      .then(r => setProducts(r.data))
+    // REFACTORED: Use imported 'api' utility instead of hardcoded URL and Axios
+    api.get('/api/products')
+      .then(r => setProducts(r.data)) // Assuming api utility returns data in r.data (Axios style)
       .catch(err => {
         console.error("Error fetching products:", err);
         // Display a message if API fails
@@ -65,9 +66,10 @@ export default function ShopPage(){
         case 'price_desc':
           return b.price - a.price;
         case 'name_asc':
-          return a.title.localeCompare(b.title);
+          // Use localeCompare for case-insensitive and correct alphabetical sorting
+          return a.title.localeCompare(b.title); 
         case 'name_desc':
-          return b.title.localeCompare(a.title) * -1;
+          return b.title.localeCompare(a.title);
         default:
           return 0;
       }
@@ -78,14 +80,14 @@ export default function ShopPage(){
 
 
   return (
-    <div className="py-6">
+    <div className="py-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <h1 className="text-4xl font-extrabold text-gray-900 mb-2 flex items-center">
         {/* Placeholder icon for Zap */}
         <span className="text-3xl mr-3 text-indigo-600">✨</span> 
-        {filterCategory === 'all' ? 'All Collections' : filterCategory}
+        {filterCategory === 'all' ? 'All Collections' : filterCategory.charAt(0).toUpperCase() + filterCategory.slice(1)}
       </h1>
       <p className="mb-8 text-gray-600">
-        Browse {filteredAndSortedProducts.length} items in the current selection.
+        Browse **{filteredAndSortedProducts.length}** items in the current selection.
       </p>
 
       {/* Filter and Sort Controls */}
@@ -104,7 +106,7 @@ export default function ShopPage(){
           >
             {categories.map(category => (
               <option key={category} value={category}>
-                {category.charAt(0).toUpperCase() + category.slice(1)}
+                {category === 'all' ? 'All Products' : category.charAt(0).toUpperCase() + category.slice(1)}
               </option>
             ))}
           </select>

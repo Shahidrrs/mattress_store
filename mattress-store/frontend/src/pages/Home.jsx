@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom';
-import axios from 'axios'
+// Removed: import axios from 'axios'
+import api from '../utils/api.js' // New import
 import ProductGrid from '../components/ProductGrid.jsx'
 
-// Hardcode the API URL to match the other files
-const apiUrl = 'http://localhost:5000' 
+// Removed: const apiUrl = 'http://localhost:5000' 
 
 // Define the new categories for the homepage cards
 const CATEGORY_CARDS = [
@@ -20,10 +20,10 @@ const CATEGORY_CARDS = [
 export default function HomePage(){
   const [featured, setFeatured] = useState([])
   const [loading, setLoading] = useState(true)
-  
+
   useEffect(()=>{
-    // Fetch products
-    axios.get(apiUrl + '/api/products')
+    // Fetch products using the imported api utility
+    api.get('/api/products')
       .then(r => {
         // Filter for products marked as featured and limit to 6 for the homepage grid
         const featuredProducts = r.data.filter(p => p.featured).slice(0, 6);
@@ -73,7 +73,7 @@ export default function HomePage(){
       <h2 className="text-3xl font-bold text-gray-800 mb-8 border-b-4 border-indigo-100 pb-3">
         Our Featured Mat & Accessory Picks
       </h2>
-      
+
       {loading ? (
         <div className="text-center p-8 text-gray-500">Loading featured products...</div>
       ) : featured.length > 0 ? (
