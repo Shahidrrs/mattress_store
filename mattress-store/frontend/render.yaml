@@ -1,0 +1,11 @@
+routes:
+
+The path: /* matches all incoming requests that don't match a static asset.
+
+path: /*
+
+The rewrite: /index.html tells the server to serve the main index.html file
+
+for those requests, allowing React Router to take over.
+
+rewrite: /index.html
