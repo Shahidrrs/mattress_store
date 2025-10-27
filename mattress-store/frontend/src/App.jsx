@@ -13,6 +13,7 @@ import Header from "./components/Header.jsx"; // <-- ADDED .jsx
 import AuthForm from "./components/AuthForm.jsx"; // <-- ADDED .jsx
 import ResetPassword from "./pages/ResetPassword.jsx"; // <-- ADDED .jsx
 import OrderDetail from "./pages/OrderDetail.jsx"; // <-- ADDED .jsx
+import AdminPanel from "./components/AdminPanel.jsx"; // <-- NEW: Import AdminPanel
 
 // --- New Component to handle /auth?mode=... logic ---
 const AuthHandler = () => {
@@ -33,44 +34,46 @@ const AuthHandler = () => {
 // ---------------------------------------------------
 
 export default function App() {
-  // Keeping this local user state for initial setup, but CartProvider is the 
-  // centralized source of truth for user data and logic.
-  const [user, setUser] = useState(null); 
+    // Keeping this local user state for initial setup, but CartProvider is the 
+    // centralized source of truth for user data and logic.
+    const [user, setUser] = useState(null); 
 
-  // Load user from localStorage on mount (Kept for initial check)
-  useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    if (storedUser) setUser(storedUser);
-  }, []);
+    // Load user from localStorage on mount (Kept for initial check)
+    useEffect(() => {
+        const storedUser = JSON.parse(localStorage.getItem("user"));
+        if (storedUser) setUser(storedUser);
+    }, []);
 
-  return (
-    <AuthProvider> {/* Ensure AuthProvider wraps everything that uses context */}
-        <CartProvider> 
-            <div className="min-h-screen bg-gray-50 font-sans">
-                <Header /> 
-                <main className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8"> 
-                    <Routes>
-                        <Route path="/" element={<Home />} />
-                        <Route path="/shop" element={<Shop />} />
-                        <Route path="/cart" element={<Cart />} />
-                        <Route path="/checkout" element={<Checkout />} />
-                        <Route path="/history" element={<OrderHistory />} /> 
-                        <Route path="/confirmation" element={<Confirmation />} /> 
-                        <Route path="/shop/:slug" element={<ProductDetail />} />
-                        
-                        {/* CHANGED ROUTE: Now catches /auth and uses the handler */}
-                        {/* This will render AuthHandler for /auth?mode=reset, /auth?mode=login, etc. */}
-                        <Route path="/auth" element={<AuthHandler />} /> 
+    return (
+        <AuthProvider> {/* Ensure AuthProvider wraps everything that uses context */}
+            <CartProvider> 
+                <div className="min-h-screen bg-gray-50 font-sans">
+                    <Header /> 
+                    <main className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8"> 
+                        <Routes>
+                            <Route path="/" element={<Home />} />
+                            <Route path="/shop" element={<Shop />} />
+                            <Route path="/cart" element={<Cart />} />
+                            <Route path="/checkout" element={<Checkout />} />
+                            <Route path="/history" element={<OrderHistory />} /> 
+                            <Route path="/confirmation" element={<Confirmation />} /> 
+                            <Route path="/shop/:slug" element={<ProductDetail />} />
+                            
+                            {/* CHANGED ROUTE: Now catches /auth and uses the handler */}
+                            {/* This will render AuthHandler for /auth?mode=reset, /auth?mode=login, etc. */}
+                            <Route path="/auth" element={<AuthHandler />} /> 
 
-                        
-                        <Route path="/orders/:orderId" element={<OrderDetail />} />
-                        {/* Or if you need a static path for testing: */}
-                        <Route path="/order/123" element={<OrderDetail />} />
-                        
-                    </Routes>
-                </main>
-            </div>
-        </CartProvider>
-    </AuthProvider>
-  );
+                            {/* NEW ROUTE: Admin Panel Access */}
+                            <Route path="/admin" element={<AdminPanel />} /> 
+                            
+                            <Route path="/orders/:orderId" element={<OrderDetail />} />
+                            {/* Or if you need a static path for testing: */}
+                            <Route path="/order/123" element={<OrderDetail />} />
+                            
+                        </Routes>
+                    </main>
+                </div>
+            </CartProvider>
+        </AuthProvider>
+    );
 }
