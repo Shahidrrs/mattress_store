@@ -18,8 +18,8 @@ const CATEGORY_CARDS = [
 export default function HomePage(){
   const [featured, setFeatured] = useState([])
   const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('') // State for Search Input
-  const navigate = useNavigate(); // Hook for redirection
+  const [searchTerm, setSearchTerm] = useState('') // NEW: State for Search Input
+  const navigate = useNavigate(); // NEW: Hook for redirection
 
   useEffect(()=>{
     // Fetch products using the imported api utility
@@ -35,7 +35,7 @@ export default function HomePage(){
 
   const categoryToSlug = (category) => encodeURIComponent(category);
   
-  // Handler for Search Submission
+  // NEW: Handler for Search Submission
   const handleSearchSubmit = (e) => {
     e.preventDefault(); // Prevent default form submission
     if (searchTerm.trim()) {
@@ -46,20 +46,18 @@ export default function HomePage(){
 
 
   return (
-    // FIX: Reduced overall horizontal padding (px-3) for phones
-    <div className="py-6 sm:py-10 px-3 sm:px-0 max-w-7xl mx-auto"> 
-      
-      {/* Hero Section - Padding further reduced on mobile (p-6) */}
-      <section className="bg-indigo-700 text-white rounded-2xl p-6 md:p-16 mb-8 sm:mb-12 shadow-2xl transition-all duration-500">
-        <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight">
+    <div className="py-10">
+      {/* Hero Section - Styled for a modern, bold look */}
+      <section className="bg-indigo-700 text-white rounded-2xl p-10 md:p-16 mb-12 shadow-2xl transition-all duration-500">
+        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">
           Enhance Your Spiritual Journey
         </h1>
-        <p className="mt-3 text-base md:text-xl font-light opacity-90 max-w-2xl">
+        <p className="mt-4 text-lg md:text-xl font-light opacity-90 max-w-2xl">
           Discover our curated collection of essential Islamic accessories designed for comfort, devotion, and quality.
         </p>
         
-        {/* Search Form in Hero Section */}
-        <form onSubmit={handleSearchSubmit} className="mt-6 sm:mt-8 max-w-lg">
+        {/* NEW: Search Form in Hero Section */}
+        <form onSubmit={handleSearchSubmit} className="mt-8 max-w-lg">
             <SearchInput
                 searchTerm={searchTerm}
                 onSearchChange={setSearchTerm}
@@ -67,42 +65,37 @@ export default function HomePage(){
         </form>
         {/* End Search Form */}
 
-        <Link to="/shop" className="inline-block mt-4 sm:mt-6 bg-white text-indigo-700 font-bold py-2 px-6 sm:py-3 sm:px-8 rounded-full shadow-lg hover:bg-gray-100 transition-colors duration-200 transform hover:scale-105">
+        <Link to="/shop" className="inline-block mt-6 bg-white text-indigo-700 font-bold py-3 px-8 rounded-full shadow-lg hover:bg-gray-100 transition-colors duration-200 transform hover:scale-105">
             Shop All Collections
         </Link>
       </section>
 
       {/* Shop By Category Section */}
-      <h2 className="text-xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-6 border-b-4 border-indigo-100 pb-2 sm:pb-3">
+      <h2 className="text-3xl font-bold text-gray-800 mb-6 border-b-4 border-indigo-100 pb-3">
         Shop By Category
       </h2>
-      {/* FIX: Changed to 4 columns (grid-cols-4) and reduced gap (gap-1) for small screens */}
-      <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-7 gap-1 sm:gap-4 mb-10 sm:mb-12">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4 mb-12">
         {CATEGORY_CARDS.map((category) => (
           <Link
             key={category.name}
             to={`/shop?category=${categoryToSlug(category.name)}`}
-            // FIX: Reduced padding to p-1 for tiny card footprint
-            className={`flex flex-col items-center justify-center p-1 sm:p-3 rounded-xl transition duration-300 transform hover:scale-105 shadow-md ${category.color} ${category.hover}`}
+            className={`flex flex-col items-center justify-center p-4 rounded-xl transition duration-300 transform hover:scale-105 shadow-md ${category.color} ${category.hover}`}
           >
-            {/* FIX: Reduced icon size */}
-            <span className="text-2xl sm:text-3xl mb-0.5">{category.icon}</span>
-            {/* FIX: Reduced text size to text-[10px] for better fit */}
-            <p className="text-[10px] sm:text-xs font-semibold text-gray-800 text-center leading-tight">{category.name}</p>
+            <span className="text-4xl mb-2">{category.icon}</span>
+            <p className="text-sm font-semibold text-gray-800 text-center">{category.name}</p>
           </Link>
         ))}
       </div>
 
 
       {/* Featured Products Section */}
-      <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 sm:mb-8 border-b-4 border-indigo-100 pb-2 sm:pb-3">
+      <h2 className="text-3xl font-bold text-gray-800 mb-8 border-b-4 border-indigo-100 pb-3">
         Our Featured Mat & Accessory Picks
       </h2>
 
       {loading ? (
         <div className="text-center p-8 text-gray-500">Loading featured products...</div>
       ) : featured.length > 0 ? (
-        // Assuming ProductGrid handles mobile responsiveness internally (e.g., grid-cols-2)
         <ProductGrid products={featured} />
       ) : (
         <div className="text-center p-8 text-gray-500 bg-white rounded-xl shadow-md">
