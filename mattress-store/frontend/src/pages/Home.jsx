@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom';
-// Removed: import axios from 'axios'
-import api from '../utils/api.js' // New import
+import { Link, useNavigate } from 'react-router-dom'; // ADDED: useNavigate for redirecting
+import api from '../utils/api.js' 
 import ProductGrid from '../components/ProductGrid.jsx'
-
-// Removed: const apiUrl = 'http://localhost:5000' 
+import SearchInput from '../components/SearchInput.jsx' // NEW: Import SearchInput
 
 // Define the new categories for the homepage cards
 const CATEGORY_CARDS = [
@@ -20,6 +18,8 @@ const CATEGORY_CARDS = [
 export default function HomePage(){
   const [featured, setFeatured] = useState([])
   const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('') // State for Search Input
+  const navigate = useNavigate(); // Hook for redirection
 
   useEffect(()=>{
     // Fetch products using the imported api utility
@@ -34,49 +34,75 @@ export default function HomePage(){
   }, [])
 
   const categoryToSlug = (category) => encodeURIComponent(category);
+  
+  // Handler for Search Submission
+  const handleSearchSubmit = (e) => {
+    e.preventDefault(); // Prevent default form submission
+    if (searchTerm.trim()) {
+        // Redirect to /shop and pass the search term as a URL query parameter
+        navigate(`/shop?search=${encodeURIComponent(searchTerm.trim())}`);
+    }
+  };
 
 
   return (
-    <div className="py-10">
-      {/* Hero Section - Styled for a modern, bold look */}
-      <section className="bg-indigo-700 text-white rounded-2xl p-10 md:p-16 mb-12 shadow-2xl transition-all duration-500">
-        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">
+    // Adjusted padding for better mobile spacing (py-6 instead of py-10)
+    <div className="py-6 sm:py-10 px-4 sm:px-0"> 
+      {/* Hero Section - Padding slightly reduced for mobile (p-8 instead of p-10) */}
+      <section className="bg-indigo-700 text-white rounded-2xl p-8 md:p-16 mb-8 sm:mb-12 shadow-2xl transition-all duration-500">
+        <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight"> {/* Reduced text size for mobile */}
           Enhance Your Spiritual Journey
         </h1>
-        <p className="mt-4 text-lg md:text-xl font-light opacity-90 max-w-2xl">
+        <p className="mt-4 text-base md:text-xl font-light opacity-90 max-w-2xl"> {/* Reduced text size for mobile */}
           Discover our curated collection of essential Islamic accessories designed for comfort, devotion, and quality.
         </p>
-        <Link to="/shop" className="inline-block mt-6 bg-white text-indigo-700 font-bold py-3 px-8 rounded-full shadow-lg hover:bg-gray-100 transition-colors duration-200 transform hover:scale-105">
+        
+        {/* Search Form in Hero Section */}
+        <form onSubmit={handleSearchSubmit} className="mt-6 sm:mt-8 max-w-lg">
+            <SearchInput
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+            />
+        </form>
+        {/* End Search Form */}
+
+        <Link to="/shop" className="inline-block mt-4 sm:mt-6 bg-white text-indigo-700 font-bold py-2 px-6 sm:py-3 sm:px-8 rounded-full shadow-lg hover:bg-gray-100 transition-colors duration-200 transform hover:scale-105">
             Shop All Collections
         </Link>
       </section>
 
       {/* Shop By Category Section */}
-      <h2 className="text-3xl font-bold text-gray-800 mb-6 border-b-4 border-indigo-100 pb-3">
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-6 border-b-4 border-indigo-100 pb-2 sm:pb-3">
         Shop By Category
       </h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4 mb-12">
+      {/* IMPROVEMENT: Grid layout adjusted:
+          - Starts at 3 columns on small screens (sm:grid-cols-3)
+          - Uses a smaller gap (gap-3) on mobile, increasing on larger screens (md:gap-4)
+      */}
+      <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-7 gap-3 md:gap-4 mb-10 sm:mb-12">
         {CATEGORY_CARDS.map((category) => (
           <Link
             key={category.name}
             to={`/shop?category=${categoryToSlug(category.name)}`}
-            className={`flex flex-col items-center justify-center p-4 rounded-xl transition duration-300 transform hover:scale-105 shadow-md ${category.color} ${category.hover}`}
+            // Reduced padding and text size for better fit on small screens
+            className={`flex flex-col items-center justify-center p-2 sm:p-4 rounded-xl transition duration-300 transform hover:scale-105 shadow-md ${category.color} ${category.hover}`}
           >
-            <span className="text-4xl mb-2">{category.icon}</span>
-            <p className="text-sm font-semibold text-gray-800 text-center">{category.name}</p>
+            <span className="text-3xl sm:text-4xl mb-1">{category.icon}</span>
+            <p className="text-xs sm:text-sm font-semibold text-gray-800 text-center">{category.name}</p>
           </Link>
         ))}
       </div>
 
 
       {/* Featured Products Section */}
-      <h2 className="text-3xl font-bold text-gray-800 mb-8 border-b-4 border-indigo-100 pb-3">
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 sm:mb-8 border-b-4 border-indigo-100 pb-2 sm:pb-3">
         Our Featured Mat & Accessory Picks
       </h2>
 
       {loading ? (
         <div className="text-center p-8 text-gray-500">Loading featured products...</div>
       ) : featured.length > 0 ? (
+        // ProductGrid should handle its own responsiveness, but general padding is improved
         <ProductGrid products={featured} />
       ) : (
         <div className="text-center p-8 text-gray-500 bg-white rounded-xl shadow-md">

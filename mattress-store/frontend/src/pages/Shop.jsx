@@ -1,24 +1,25 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom';
 import ProductGrid from '../components/ProductGrid.jsx'
-import api from '../utils/api.js'; // <-- API Utility Import
-// Placeholder icons since lucide-react might not be compiled
-// import { Filter, SortAsc, SortDesc, Zap } from 'lucide-react'
-
-// REMOVED: const apiUrl = 'http://localhost:5000'
+import SearchInput from '../components/SearchInput.jsx'; // <-- NEW: Import SearchInput
+import api from '../utils/api.js';
 
 export default function ShopPage(){
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   
-  // Use useSearchParams to read and manage the URL query parameters
   const [searchParams] = useSearchParams();
-  const urlCategory = searchParams.get('category'); // e.g., "Prayer Mat"
+  // Get category from URL (for category filter)
+  const urlCategory = searchParams.get('category'); 
+  // <-- NEW: Get search query from URL
+  const urlSearchQuery = searchParams.get('search') || ''; 
 
   const [sortOrder, setSortOrder] = useState('price_asc') 
   
   // State to hold the active filter category
   const [filterCategory, setFilterCategory] = useState('all');
+  // <-- NEW: State to hold the search term from the input field
+  const [searchTerm, setSearchTerm] = useState(urlSearchQuery);
 
   // Update filterCategory state whenever the URL parameter changes
   useEffect(() => {
@@ -26,16 +27,19 @@ export default function ShopPage(){
     setFilterCategory(urlCategory || 'all');
   }, [urlCategory]);
 
+  // <-- NEW: Update local search term state when URL search query changes
+  useEffect(() => {
+      setSearchTerm(urlSearchQuery);
+  }, [urlSearchQuery]);
+
 
   // 1. Fetch all products on component mount
   useEffect(()=>{
     setLoading(true)
-    // REFACTORED: Use imported 'api' utility instead of hardcoded URL and Axios
     api.get('/api/products')
-      .then(r => setProducts(r.data)) // Assuming api utility returns data in r.data (Axios style)
+      .then(r => setProducts(r.data))
       .catch(err => {
         console.error("Error fetching products:", err);
-        // Display a message if API fails
         setProducts([]);
       })
       .finally(() => setLoading(false))
@@ -44,7 +48,6 @@ export default function ShopPage(){
   // 2. Derive unique categories from the products list
   const categories = useMemo(() => {
     const allCategories = products.map(p => p.category).filter(Boolean);
-    // Include the category from the URL, if it exists, to ensure it shows up in the dropdown even if no products match yet.
     const uniqueCategories = new Set(['all', urlCategory, ...allCategories].filter(Boolean));
     return Array.from(uniqueCategories).sort();
   }, [products, urlCategory]);
@@ -53,7 +56,19 @@ export default function ShopPage(){
   const filteredAndSortedProducts = useMemo(() => {
     let result = [...products];
 
-    // --- Filtering ---
+    const lowerSearchTerm = searchTerm.toLowerCase();
+
+    // --- NEW: Search Filtering ---
+    if (lowerSearchTerm) {
+        result = result.filter(product => 
+            // Check title OR description OR category for the search term
+            product.title.toLowerCase().includes(lowerSearchTerm) ||
+            (product.description && product.description.toLowerCase().includes(lowerSearchTerm)) ||
+            (product.category && product.category.toLowerCase().includes(lowerSearchTerm))
+        );
+    }
+
+    // --- Category Filtering ---
     if (filterCategory !== 'all') {
       result = result.filter(product => product.category === filterCategory);
     }
@@ -66,7 +81,6 @@ export default function ShopPage(){
         case 'price_desc':
           return b.price - a.price;
         case 'name_asc':
-          // Use localeCompare for case-insensitive and correct alphabetical sorting
           return a.title.localeCompare(b.title); 
         case 'name_desc':
           return b.title.localeCompare(a.title);
@@ -76,28 +90,37 @@ export default function ShopPage(){
     });
 
     return result;
-  }, [products, filterCategory, sortOrder]);
+  }, [products, filterCategory, sortOrder, searchTerm]); // <-- Dependency added
 
+  const displayCategory = filterCategory === 'all' ? 'All Collections' : filterCategory.charAt(0).toUpperCase() + filterCategory.slice(1);
 
   return (
     <div className="py-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <h1 className="text-4xl font-extrabold text-gray-900 mb-2 flex items-center">
-        {/* Placeholder icon for Zap */}
         <span className="text-3xl mr-3 text-indigo-600">✨</span> 
-        {filterCategory === 'all' ? 'All Collections' : filterCategory.charAt(0).toUpperCase() + filterCategory.slice(1)}
+        {displayCategory}
       </h1>
       <p className="mb-8 text-gray-600">
         Browse **{filteredAndSortedProducts.length}** items in the current selection.
       </p>
 
-      {/* Filter and Sort Controls */}
+      {/* Filter, Search, and Sort Controls */}
       <div className="bg-white p-4 rounded-xl shadow-lg mb-8 flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-6">
         
+        {/* Search Input */}
+        <div className="flex-grow">
+          {/* Note: In a real app, you might want to wrap this in a form and update URL params on search submit */}
+          <SearchInput
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            placeholder={`Search within ${displayCategory}...`}
+          />
+        </div>
+
         {/* Category Filter */}
         <div className="flex items-center space-x-2">
-          {/* Placeholder icon for Filter */}
           <span className="text-gray-500">⚙️</span> 
-          <label htmlFor="category-filter" className="font-semibold text-gray-700">Filter By:</label>
+          <label htmlFor="category-filter" className="font-semibold text-gray-700 whitespace-nowrap">Filter By:</label>
           <select
             id="category-filter"
             value={filterCategory}
@@ -114,9 +137,8 @@ export default function ShopPage(){
 
         {/* Sorting Selector */}
         <div className="flex items-center space-x-2">
-          {/* Placeholder icon for SortDesc */}
           <span className="text-gray-500">↕️</span> 
-          <label htmlFor="sort-order" className="font-semibold text-gray-700">Sort By:</label>
+          <label htmlFor="sort-order" className="font-semibold text-gray-700 whitespace-nowrap">Sort By:</label>
           <select
             id="sort-order"
             value={sortOrder}
@@ -135,7 +157,7 @@ export default function ShopPage(){
         <div className="text-center p-12 text-gray-600">Loading products...</div>
       ) : filteredAndSortedProducts.length === 0 ? (
         <div className="text-center p-12 bg-white rounded-xl shadow-md text-gray-500">
-          No products found in the "{filterCategory}" category.
+          No products found matching the current filters or search term.
         </div>
       ) : (
         <ProductGrid products={filteredAndSortedProducts} />
