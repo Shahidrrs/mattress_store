@@ -65,7 +65,7 @@ export const CartProvider = ({ children }) => {
     try {
       // REPLACED: fetch("http://localhost:5000/api/cart", ...)
       // Use api.get, the base URL and Authorization header are handled centrally.
-      const response = await api.get("/cart"); 
+      const response = await api.get("/api/cart"); 
       
       // The backend response is expected to be { items: [...] }
       const backendCart = response.data.items?.map((item) => ({
@@ -111,7 +111,7 @@ export const CartProvider = ({ children }) => {
     if (localStorage.getItem("token")) {
       try {
         // REPLACED: fetch("http://localhost:5000/api/cart/add", ...)
-        await api.post("/cart/add", { productId: product._id, quantity: qty });
+        await api.post("/api/cart/add", { productId: product._id, quantity: qty });
       } catch (err) {
         console.error("Failed to sync cart after add:", err);
       }
@@ -130,7 +130,7 @@ export const CartProvider = ({ children }) => {
     if (localStorage.getItem("token")) {
       try {
         // REPLACED: fetch("http://localhost:5000/api/cart/remove", ...)
-        await api.post("/cart/remove", { productId });
+        await api.post("/api/cart/remove", { productId });
       } catch (err) {
         console.error("Failed to sync cart after remove:", err);
       }
@@ -146,7 +146,7 @@ export const CartProvider = ({ children }) => {
     if (localStorage.getItem("token")) {
       try {
         // REPLACED: fetch("http://localhost:5000/api/cart/clear", ...)
-        await api.post("/cart/clear");
+        await api.post("/api/cart/clear");
       } catch (err) {
         console.error("Failed to sync cart after clear:", err);
       }
