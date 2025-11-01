@@ -85,16 +85,20 @@ export default function Header() {
 
                     {/* Center: Logo / Brand Name (Ajmal-style centered on mobile) */}
                     <div className="absolute left-1/2 transform -translate-x-1/2 sm:static sm:transform-none">
-                        <Link to="/" className="text-2xl md:text-3xl font-extrabold text-indigo-700 tracking-tight flex items-center gap-1 transition-colors duration-200 hover:text-indigo-500">
-                            <span className="text-2xl hidden sm:inline">🕌</span> 
-                            <span className="text-xl sm:text-2xl">Firdousi</span>
+                        <Link to="/" className="text-2xl md:text-3xl font-extrabold text-indigo-700 tracking-tight flex items-center justify-center gap-1 transition-colors duration-200 hover:text-indigo-500">
+                            <img 
+                                src="https://res.cloudinary.com/dvrpb6qaw/image/upload/v1761999903/header_1_haxzgi.jpg" 
+                                alt="Firdousi" // Shortened alt text
+                                // Increased size for better visibility
+                                className="h-16 sm:h-8 object-contain w-auto" 
+                            />
                         </Link>
                     </div>
 
                     {/* Right Side: Actions (Search, Cart, User/Login) */}
                     <div className="flex items-center space-x-2 md:space-x-4">
                         
-                         {/* Search Icon */}
+                            {/* Search Icon */}
                         <Link 
                             to="/shop?search=" 
                             className="p-2 rounded-full text-gray-600 hover:bg-gray-100 transition-colors duration-200"
